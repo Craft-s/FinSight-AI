@@ -5,6 +5,7 @@
 Traceable financial research for US and China A-share markets.
 
 [![FinSight checks](https://github.com/Craft-s/FinSight-AI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Craft-s/FinSight-AI/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 FinSight AI 将公司财务、财报原文与 AI 研究放在同一工作台中。项目围绕真实数据、精确计算和来源追溯构建：财务指标保留原始字段、计算操作数和版本信息，正文研究保留可追溯的文档片段。
 
@@ -174,9 +175,9 @@ PostgreSQL/RQ 测试需要独立的 `TEST_DATABASE_URL` 与 `TEST_REDIS_URL`，�
 - 美股演示使用 AAPL、MSFT、NVDA 的真实 SEC JSON 历史归档，以及三份真实财报 HTML，取自固定版本的公开 EdgarTools 归档。它们是历史资料；原始 URL、归档版本、时间、SHA-256 和第三方许可见[数据说明](data/README.md)与[正文说明](data/documents/README.md)。
 - A 股结构化指标来自东方财富第三方整理，公告原文链接来自巨潮资讯。第三方报表口径与原始披露可能存在差异，资料应结合原文核查；公开接口访问不代表商业再分发授权。
 - 合成财务、HTML 和模型响应仅用于明确标识的隔离测试，生产失败不会回退到合成数据或 Fake 分析。
-- **项目源码许可证尚未选定。** 第三方归档保留其来源与许可声明。
+- 项目原创源码和文档采用 [MIT License](LICENSE)，允许在保留版权与许可声明的条件下使用、修改及分发。第三方依赖、财报资料和数据服务保留各自的权利与许可，详见[第三方说明](THIRD_PARTY_NOTICES.md)。
 
-仅供研究和教育，不构成投资建议。
+本项目用于财务研究与教育展示，输出不构成投资建议。
 
 ## 文档导航
 
@@ -193,3 +194,7 @@ PostgreSQL/RQ 测试需要独立的 `TEST_DATABASE_URL` 与 `TEST_REDIS_URL`，�
 | [安全说明](docs/SECURITY.md) / [隐私检查](docs/PRIVACY_REVIEW.md) | 权限、凭据、来源保护与发布检查 |
 
 提交配置、日志或新增截图前运行 `python scripts/check_public_files.py`；真实 `.env`、密钥、数据库和运行资料不纳入 Git。
+
+## 参与贡献
+
+欢迎通过 Issue 报告问题，或提交范围明确且附验证结果的 Pull Request。请先阅读[贡献指南](CONTRIBUTING.md)；涉及漏洞与敏感信息时，按[安全报告流程](SECURITY.md)私下反馈。
