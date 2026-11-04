@@ -307,3 +307,13 @@ A股尚不支持PDF正文解析、AI研究/事件证据链、单季度差分、�
 - 上传准备时发现Windows Git换行转换会影响后续检出归档；`.gitattributes`对真实JSON/HTML归档目录显式禁用text/eol转换，保留原始字节和来源哈希。该修正不改动任何原始归档内容。
 
 本轮未改业务逻辑，不重新宣称金融/模型/桌面功能获得额外验收。完整范围、操作与限制见[隐私报告](PRIVACY_REVIEW.md)。
+
+## 2026-11-04 GitHub Actions 首次运行与导入分组修正
+
+实际远程运行：[41794674385](https://github.com/Craft-s/FinSight-AI/actions/runs/41794674385)，提交`02c51bf`。前端、浏览器、容器和发布隐私检查的结论均为success；后端在`ruff check --config pyproject.toml ../frontend/e2e/serve_api.py`失败，错误为I001，因此该次后端pytest尚未执行。此结果也补充了GitHub Ubuntu runner的完整容器启动与烟雾验证证据；不代表本机Docker下载限制已经消除。
+
+原因：Ruff从不同工作目录运行时，对浏览器测试宿主中的`app`包分类不同。本机从项目根检查可通过，从backend目录按CI原命令可复现缺少第三方/项目导入分隔空行。
+
+修正：在`backend/pyproject.toml`明确`known-first-party = ["app"]`，并在`frontend/e2e/serve_api.py`保留相应空行。动态导入仍在隔离环境设置之后，没有提前加载生产配置，也未放宽检查、跳过测试或修改业务逻辑。
+
+本地验证：根目录、backend和frontend三个工作目录的宿主Ruff检查通过；完整后端及共享Python脚本Ruff、发布候选/实际暂存区检查通过。后续完整云端检查由修复提交触发，最终结果以[Actions运行列表](https://github.com/Craft-s/FinSight-AI/actions/workflows/ci.yml)对应提交为准；原始失败记录保留，不能用最初本地584项代替该次未执行的云端后端测试。
