@@ -34,3 +34,10 @@ export interface DocumentJob { id: string; job_id: string; status: string; error
 export interface ResearchRequest { cik: string; task_type: ResearchTaskType; filing_ids: string[]; question?: string; config_id: string; language: string; force?: boolean }
 export interface ResearchClaim { text: string; kind: 'disclosed_fact' | 'inference'; citation_ids: string[]; metric_refs: string[]; reported_values: {metric_ref: string; value: string; unit: string}[] }
 export interface ResearchReport { id: string; job_id: string; cik: string; task_type: ResearchTaskType; title: string; language: string; created_at: string; provider: string; model_id: string; source_kind: string; content: {claims: ResearchClaim[]; citations: EvidenceCitation[]; facts: OverviewFact[]; uncertainties: string[]; insufficient_evidence: boolean; validation: Record<string, unknown>; disclaimer?: string; limitations?:string[]; retrieval_mode?:string; filings?:{id:string;accession:string;form_type:string;filing_date:string;report_date?:string|null}[]}; usage: Record<string, unknown>; duration_ms: number }
+
+export type CnResearchTaskType = Exclude<ResearchTaskType, 'event'>
+export interface CnFilingDocument extends FilingDocument { market?: 'CN'; symbol: string; page_count: number; coverage?: Record<string, unknown>; source_snapshot_id?: string }
+export interface CnEvidenceCitation extends Omit<EvidenceCitation, 'accession'> { market: 'CN'; symbol: string; announcement_id: string; document_id: string; location: Record<string, unknown>; retrieval_mode?: string }
+export interface CnResearchRequest extends Omit<ResearchRequest, 'cik'|'task_type'> { symbol: string; task_type: CnResearchTaskType }
+export interface CnResearchJob extends Omit<ResearchJob, 'cik'> { market: 'CN'; symbol: string }
+export interface CnResearchReport extends Omit<ResearchReport, 'cik'|'content'> { market: 'CN'; symbol: string; content: Omit<ResearchReport['content'],'citations'|'filings'> & { citations: CnEvidenceCitation[]; filings?: {id:string;announcement_id?:string;title?:string;form_type:string;filing_date:string;report_date?:string|null}[] } }

@@ -59,13 +59,24 @@ def normalized_text(value: str) -> str:
     return " ".join(unicodedata.normalize("NFC", value).split())
 
 
-def safe_citation_url(value: object, accession: str | None = None) -> str | None:
-    """Only exact SEC accession-file URLs become active links in Markdown exports."""
+def safe_citation_url(value: object, accession: str | None = None, *, market="US", page=None) -> str | None:
+    """Market-specific fixed hosts; never infer a market from an untrusted URL."""
     if (not isinstance(value, str) or len(value) > 1500
             or any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in value)):
         return None
     try:
         parts = urlsplit(value)
+        if market == "CN":
+            from app.services.cn.pdf_client import validate_pdf_url
+            try:
+                validate_pdf_url(value)
+            except AppError:
+                return None
+            if page is not None and (type(page) is not int or not 1 <= page <= 10000):
+                return None
+            return value + (f"#page={page}" if page is not None else "")
+        if market != "US":
+            return None
         if (parts.scheme != "https" or parts.hostname != "www.sec.gov" or parts.port not in (None, 443)
                 or parts.username is not None or parts.password is not None or parts.query or parts.fragment):
             return None
@@ -83,6 +94,35 @@ def _context_error():
     return AppError("RESEARCH_CONTEXT_INVALID", "研究证据上下文无效，请重新同步并检索资料。", 409)
 
 
+def _cn_citation(row, context):
+    """Bind announcement, security, source hash and page range to frozen records."""
+    symbol = context["company"]["symbol"]
+    if not isinstance(symbol, str) or not re.fullmatch(r"[0-9]{6}\.(SH|SZ|BJ)", symbol):
+        return False
+    if not 1 <= len(context["filings"]) <= 2 or not 1 <= len(context["document_versions"]) <= 16:
+        return False
+    filings = {item["id"]: item for item in context["filings"]}
+    versions = {item["id"]: item for item in context["document_versions"]}
+    if len(filings) != len(context["filings"]) or len(versions) != len(context["document_versions"]):
+        return False
+    filing = filings.get(row["filing_id"])
+    version = versions.get(row["document_id"])
+    location = row["location"]
+    start, end = location["page_start"], location["page_end"]
+    return (
+        row.get("market") == "CN" and row.get("symbol") == symbol
+        and row.get("announcement_id") == row["filing_id"]
+        and not row.get("accession") and bool(filing) and bool(version)
+        and safe_citation_url(row["source_url"], market="CN") is not None
+        and filing["source_url"] == row["source_url"]
+        and filing["form_type"] == row["form_type"] and filing["filing_date"] == row["filing_date"]
+        and version["filing_id"] == row["filing_id"] and version["source_url"] == row["source_url"]
+        and version["sha256"] == row["document_sha256"]
+        and type(start) is int and type(end) is int and type(version["page_count"]) is int
+        and 1 <= start <= end <= version["page_count"] <= 10000
+    )
+
+
 def context_evidence(context: dict) -> tuple[dict, dict]:
     """Validate identities before creating a model prompt or trusting copied results.
 
@@ -91,19 +131,28 @@ def context_evidence(context: dict) -> tuple[dict, dict]:
     """
     try:
         citations, facts = context.get("citations", []), context.get("facts", [])
+        market = context.get("market", "US")
+        if market not in {"US", "CN"} or market == "CN" and facts:
+            raise ValueError
+        if market == "CN" and context.get("source_kind") not in {"cn_live", "cn_snapshot", "synthetic_fixture"}:
+            raise ValueError
         if not isinstance(citations, list) or not isinstance(facts, list) or len(citations) > 32 or len(facts) > 120:
             raise ValueError
         citation_map, fact_map = {}, {}
         for row in citations:
             identifier = row["citation_id"]
-            accession = row["accession"]
             if (not isinstance(identifier, str) or not _ID.fullmatch(identifier) or identifier in citation_map
-                    or not isinstance(accession, str) or not _ACCESSION.fullmatch(accession)
-                    or not safe_citation_url(row["source_url"], accession)
                     or not isinstance(row["document_sha256"], str)
                     or not re.fullmatch(r"[a-fA-F0-9]{64}", row["document_sha256"])
                     or not isinstance(row["excerpt"], str) or not 1 <= len(row["excerpt"]) <= 12_000
                     or not normalized_text(row["excerpt"])):
+                raise ValueError
+            if market == "CN":
+                if not _cn_citation(row, context):
+                    raise ValueError
+            elif (row.get("market", "US") != "US" or not isinstance(row.get("accession"), str)
+                  or not _ACCESSION.fullmatch(row["accession"])
+                  or not safe_citation_url(row["source_url"], row["accession"])):
                 raise ValueError
             for field in ("filing_id", "chunk_id", "form_type", "filing_date", "section"):
                 if not isinstance(row[field], str) or not row[field] or len(row[field]) > 500:
@@ -218,5 +267,7 @@ def validate_result(content: str, context: dict) -> dict:
         "filings": copy.deepcopy(context.get("filings", [])),
         "task_type": context.get("task_type"), "retrieval_mode": context.get("retrieval_mode", "not_specified"),
         "source_kind": context.get("source_kind", "unknown"), "schema_version": SCHEMA_VERSION,
+        **({"market": "CN", "symbol": context["company"]["symbol"],
+            "schema_version": context.get("schema_version", SCHEMA_VERSION)} if context.get("market") == "CN" else {}),
         "disclaimer": "For research and education only. Not investment advice." if english else "仅供研究和教育，不构成投资建议。",
     }

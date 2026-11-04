@@ -215,3 +215,5 @@ A股功能随同一API/worker部署，无需新增服务。升级先执行迁移
 Compose的共享backend environment已转发这三项至迁移/API/worker；裸机管理脚本读取根`.env`。CN模式与CN表独立绑定，可与SEC历史归档表共用数据库；不能修改已有CN模式绑定来混入测试或归档。SEC测试模式下CN强制synthetic_fixture并禁用在线请求。A股在线链路目前无需SEC联系邮箱或模型Key，仍需可达网络和Redis/worker。
 
 现有本机环境可先`python scripts/manage.py migrate`，重启后在首页选择A股并授权更新目录；或执行`cn-refresh-directory`和`cn-sync --symbol 600519.SH`。本机恢复脚本不自动迁移，因此新增迁移必须先完成。可信离线归档、来源许可边界及其他操作见[A股说明](A_SHARE_SUPPORT.md)。真实在线、本地回归、Compose配置和完整容器启动验收分别记录，不能互相替代。
+
+PDF/研究扩展另需升级锁定依赖`pypdf==6.21.4`、迁移至`h52a02`并重启API/worker。`.env.example`与Compose已提供PDF字节、页数、下载/解析时限、文本与分块上限；具体默认值、文本型限制与用户流程见[A股正文研究](A_SHARE_RESEARCH.md)。真实PDF与数据库备份属于本地运行资料，不随源码分发。

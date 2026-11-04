@@ -7,10 +7,11 @@ import { api, errorMessage } from '../api'
 import { locale, metricLabel, t, unitLabel } from '../i18n'
 import { cnSearchCompany, comparableCnTrend } from '../market'
 import { useSessionStore } from '../stores'
-import type { CnCompany, CnFiling, CnMetrics, CnSource, Metric, Page, SyncJob } from '../types'
+import type { CnCompany, CnFiling, CnMetrics, CnSource, CnResearchTaskType, Metric, Page, SyncJob } from '../types'
 import { displayTime, displayValue, formatExact, missingReason, safeCnSourceUrl } from '../utils'
 import TrendChart from '../components/TrendChart.vue'
 import SourceBadge from '../components/SourceBadge.vue'
+import CnResearchWorkbench from '../components/CnResearchWorkbench.vue'
 
 const cnMetricLabel = (key: string, fallback?: string) => metricLabel(key, fallback, 'CN')
 const formLabel = (type: string) => t(({annual:'年报',semiannual:'半年报',q1:'一季报',q3:'三季报'} as Record<string,string>)[type] || '其他财报公告')
@@ -24,6 +25,8 @@ const frequency = ref<'annual'|'cumulative'>('annual')
 const selectedPeriod = ref('')
 const chartMetric = ref('cn_total_revenue')
 const activeTab = ref('overview')
+const researchPreset = ref<{filing:CnFiling;type:CnResearchTaskType;revision:number}|null>(null)
+function openResearch(filing:CnFiling) { researchPreset.value={filing,type:['annual','semiannual','q1','q3'].includes(filing.form_type)?'summary':'question',revision:(researchPreset.value?.revision||0)+1};activeTab.value='research' }
 const loading = ref(true)
 const metricLoading = ref(false)
 const filingLoading = ref(false)
@@ -109,7 +112,7 @@ async function showSource(metric:Metric) {
   catch(cause){if(revision===sourceGeneration)sourceError.value=errorMessage(cause)}
   finally{if(revision===sourceGeneration)sourceLoading.value=false}
 }
-watch(symbol,()=>{clearTimeout(timer);running.value=false;job.value=null;company.value=null;metrics.value=null;filings.value={items:[],total:0,page:1,page_size:10};selectedPeriod.value='';activeTab.value='overview';sourceOpen.value=false;load()},{immediate:true})
+watch(symbol,()=>{clearTimeout(timer);running.value=false;job.value=null;company.value=null;metrics.value=null;filings.value={items:[],total:0,page:1,page_size:10};selectedPeriod.value='';activeTab.value='overview';researchPreset.value=null;sourceOpen.value=false;load()},{immediate:true})
 watch(frequency,()=>{selectedPeriod.value='';if(company.value)loadMetrics()})
 onBeforeUnmount(()=>{generation++;sourceGeneration++;clearTimeout(timer)})
 </script>
@@ -141,10 +144,10 @@ onBeforeUnmount(()=>{generation++;sourceGeneration++;clearTimeout(timer)})
           </template>
         </el-tab-pane>
         <el-tab-pane :label="t('财报与公告')" name="filings">
-          <section class="panel"><div class="panel-heading"><div><h2>{{ t('财报与公告') }}</h2><p>{{ t('公告列表来自公开披露索引，原文在来源网站打开；PDF 尚未在本应用解析。') }}</p></div><el-button text :icon="Refresh" :loading="filingLoading" @click="loadFilings(filings.page)">{{ t('刷新') }}</el-button></div><div v-if="filingLoading" class="loading-panel"><el-skeleton :rows="5" animated /></div><div v-else-if="filingError" class="empty-state error-state"><p>{{ t(filingError) }}</p><el-button @click="loadFilings(filings.page)">{{ t('重试') }}</el-button></div><div v-else-if="!filings.items.length" class="empty-state"><el-icon><Document /></el-icon><h3>{{ t('尚无已保存公告') }}</h3><p>{{ t('同步后显示真实公告；列表缺失不表示公司没有披露。') }}</p><el-button :loading="running" @click="sync">{{ t('同步最新 A 股资料') }}</el-button></div><template v-else><div class="cn-filing-list"><article v-for="filing in filings.items" :key="filing.id" class="cn-filing"><div><span class="form-tag">{{ formLabel(filing.form_type) }}</span><h3>{{ filing.title }}</h3><p>{{ t('披露日期') }} {{ filing.filing_date }} <span v-if="filing.report_date"> · {{ t('报告期') }} {{ filing.report_date }}</span></p></div><a v-if="safeCnSourceUrl(filing.source_url)" :href="safeCnSourceUrl(filing.source_url)!" class="source-link" target="_blank" rel="noopener noreferrer">{{ t('查看披露原文') }} ↗</a><span v-else class="field-hint">{{ t('原文链接不可用') }}</span></article></div><div class="table-pagination"><el-pagination background layout="prev, pager, next" :current-page="filings.page" :page-size="filings.page_size" :total="filings.total" @current-change="loadFilings" /></div></template></section>
+          <section class="panel"><div class="panel-heading"><div><h2>{{ t('财报与公告') }}</h2><p>{{ t('从巨潮原文准备 PDF 正文，按页检索证据并创建研究。') }}</p></div><el-button text :icon="Refresh" :loading="filingLoading" @click="loadFilings(filings.page)">{{ t('刷新') }}</el-button></div><div v-if="filingLoading" class="loading-panel"><el-skeleton :rows="5" animated /></div><div v-else-if="filingError" class="empty-state error-state"><p>{{ t(filingError) }}</p><el-button @click="loadFilings(filings.page)">{{ t('重试') }}</el-button></div><div v-else-if="!filings.items.length" class="empty-state"><el-icon><Document /></el-icon><h3>{{ t('尚无已保存公告') }}</h3><p>{{ t('同步后显示真实公告；列表缺失不表示公司没有披露。') }}</p><el-button :loading="running" @click="sync">{{ t('同步最新 A 股资料') }}</el-button></div><template v-else><div class="cn-filing-list"><article v-for="filing in filings.items" :key="filing.id" class="cn-filing"><div><span class="form-tag">{{ formLabel(filing.form_type) }}</span><h3>{{ filing.title }}</h3><p>{{ t('披露日期') }} {{ filing.filing_date }} <span v-if="filing.report_date"> · {{ t('报告期') }} {{ filing.report_date }}</span></p></div><div class="cn-filing-actions"><el-button @click="openResearch(filing)">{{ t('正文与研究') }}</el-button><a v-if="safeCnSourceUrl(filing.source_url)" :href="safeCnSourceUrl(filing.source_url)!" class="source-link" target="_blank" rel="noopener noreferrer">{{ t('查看披露原文') }} ↗</a><span v-else class="field-hint">{{ t('原文链接不可用') }}</span></div></article></div><div class="table-pagination"><el-pagination background layout="prev, pager, next" :current-page="filings.page" :page-size="filings.page_size" :total="filings.total" @current-change="loadFilings" /></div></template></section>
           <div v-if="filings.limitations?.length" class="panel cn-coverage"><ul><li v-for="item in filings.limitations" :key="item">{{ t(item) }}</li></ul></div>
         </el-tab-pane>
-        <el-tab-pane :label="t('研究能力')" name="coverage"><section class="panel cn-coverage"><h2>{{ t('A 股研究能力与覆盖范围') }}</h2><p>{{ t('已支持公司搜索、异步同步、人民币财务、精确值、来源快照和公开公告链接。') }}</p><p>{{ t('A 股 PDF 正文检索、带引用的 AI 研究及历史口径尚未接通；不会使用 SEC 管线生成缺乏依据的结论。') }}</p><p>{{ t('结构化数据来自第三方整理，应回到披露原文核对。') }}</p></section></el-tab-pane>
+        <el-tab-pane :label="t('财报正文与 AI 研究')" name="research" lazy><CnResearchWorkbench :key="symbol" :symbol="symbol" :filings="filings.items" :preset="researchPreset" /></el-tab-pane>
       </el-tabs>
     </template>
     <el-drawer v-model="sourceOpen" :title="t('A 股指标来源与计算依据')" size="min(620px, 100vw)">

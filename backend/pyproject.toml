@@ -12,7 +12,7 @@ dependencies = [
   "alembic>=1.14,<2", "psycopg[binary]>=3.2,<4", "httpx>=0.28,<1",
   "pydantic-settings>=2.7,<3", "redis>=6.4,<7", "rq>=2.2,<3",
   "openai>=2,<3", "google-genai>=1,<2", "cryptography>=46,<48",
-  "beautifulsoup4>=4.15,<5", "lxml>=6.1,<7"
+  "beautifulsoup4>=4.15,<5", "lxml>=6.1,<7", "pypdf>=6.21.4,<7"
 ]
 
 [project.optional-dependencies]

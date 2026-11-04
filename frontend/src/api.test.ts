@@ -58,6 +58,32 @@ describe('private research and public evidence transport',()=>{
 })
 
 describe('A-share isolated transport', () => {
+  it('keeps PDF reads public and document preparation and polling owner-bound', async()=>{
+    transport.get.mockResolvedValue({data:{items:[]}})
+    await api.cnDocuments('600519.SH','filing/one')
+    await api.cnEvidence('600519.SH','现金流','filing/one')
+    await api.cnSyncDocuments('600519.SH','filing/one','session-secret')
+    await api.cnDocumentJob('job/one','session-secret')
+    expect(transport.get).toHaveBeenCalledWith('/cn/companies/600519.SH/filings/filing%2Fone/documents')
+    expect(transport.get).toHaveBeenCalledWith('/cn/companies/600519.SH/evidence',{params:{q:'现金流',filing_id:'filing/one'}})
+    expect(transport.post).toHaveBeenCalledWith('/cn/companies/600519.SH/filings/filing%2Fone/documents/sync',{}, {headers:{'X-Admin-Token':'session-secret'}})
+    expect(transport.get).toHaveBeenCalledWith('/cn/documents/jobs/job%2Fone',{headers:{'X-Admin-Token':'session-secret'}})
+  })
+  it('submits CN research without CIK and downloads only via authorized CN endpoints',async()=>{
+    const body={symbol:'600519.SH',task_type:'comparison' as const,filing_ids:['one','two'],config_id:'verified',language:'zh-CN'}
+    transport.get.mockResolvedValue({data:{}})
+    await api.cnCreateResearch(body,'session-secret')
+    await api.cnResearchJob('job/one','session-secret')
+    await api.cnRetryResearch('job/one','session-secret')
+    await api.cnCancelResearch('job/one','session-secret')
+    await api.cnResearchReport('report/one','session-secret')
+    await api.cnDownloadReport('report/one','session-secret')
+    expect(transport.post).toHaveBeenCalledWith('/cn/research/jobs',body,{headers:{'X-Admin-Token':'session-secret'}})
+    expect(transport.post.mock.calls[0][1]).not.toHaveProperty('cik')
+    expect(transport.post).toHaveBeenCalledWith('/cn/research/jobs/job%2Fone/retry',{},{headers:{'X-Admin-Token':'session-secret'}})
+    expect(transport.post).toHaveBeenCalledWith('/cn/research/jobs/job%2Fone/cancel',{},{headers:{'X-Admin-Token':'session-secret'}})
+    expect(transport.get).toHaveBeenCalledWith('/cn/research/reports/report%2Fone/download',{headers:{'X-Admin-Token':'session-secret'},params:{format:'md'},responseType:'blob'})
+  })
   it('searches the chosen market and does not manufacture a CIK for a Chinese security', async () => {
     transport.get.mockResolvedValue({data:{items:[{symbol:'600519.SH',code:'600519',name:'TEST ONLY',market:'CN',exchange:'SH',currency:'CNY',source_kind:'synthetic_fixture'}]}})
     const response=await api.search('600519',undefined,'CN')

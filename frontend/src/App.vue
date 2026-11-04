@@ -11,8 +11,9 @@ import './cn.css'
 const session = useSessionStore()
 const route = useRoute()
 const elementLocale = computed(() => activeLanguage.value.elementLocale)
-const pageName = computed(() => t(route.path.startsWith('/cn/company') ? 'A 股公司研究' : route.path.startsWith('/company') ? '公司研究' : route.path.startsWith('/settings') ? '设置' : route.path.startsWith('/research') ? '研究记录' : '发现公司'))
-watch(() => route.path, path => { if (path.startsWith('/cn/company')) activeMarket.value = 'CN'; else if (path.startsWith('/company')) activeMarket.value = 'US' }, {immediate:true})
+const companyPage = computed(() => route.path === '/' || route.path.startsWith('/company/') || route.path.startsWith('/cn/company/'))
+const pageName = computed(() => t(route.path.startsWith('/cn/company/') ? 'A 股公司研究' : route.path.startsWith('/company') ? '公司研究' : route.path.startsWith('/settings') ? '设置' : (route.path.startsWith('/research') || route.path.startsWith('/cn/research')) ? '研究记录' : '发现公司'))
+watch(() => route.path, path => { if (path.startsWith('/cn/')) activeMarket.value = 'CN'; else if (path.startsWith('/company') || path.startsWith('/research')) activeMarket.value = 'US' }, {immediate:true})
 onMounted(session.checkHealth)
 </script>
 <template>
@@ -24,8 +25,8 @@ onMounted(session.checkHealth)
         <div class="workspace-label"><span class="workspace-dot"></span>{{ t('个人研究空间') }}<span class="workspace-plan">{{ t('私有') }}</span></div>
         <p class="nav-label">{{ t('研究工具') }}</p>
         <nav class="main-nav" :aria-label="t('主导航')">
-          <RouterLink to="/" :aria-label="`${t('公司搜索')} ↗`" :title="t('公司搜索')" :class="{ active: route.path === '/' || route.path.startsWith('/company') || route.path.startsWith('/cn/company') }"><el-icon><Search /></el-icon><span>{{ t('公司搜索') }}</span><span class="nav-arrow">↗</span></RouterLink>
-          <RouterLink to="/research" :aria-label="t('研究记录')" :title="t('研究记录')" :class="{ active: route.path.startsWith('/research') }"><el-icon><DataAnalysis /></el-icon><span>{{ t('研究记录') }}</span></RouterLink>
+          <RouterLink to="/" :aria-label="`${t('公司搜索')} ↗`" :title="t('公司搜索')" :class="{ active: companyPage }"><el-icon><Search /></el-icon><span>{{ t('公司搜索') }}</span><span class="nav-arrow">↗</span></RouterLink>
+          <RouterLink :to="activeMarket === 'CN' ? '/cn/research' : '/research'" :aria-label="t('研究记录')" :title="t('研究记录')" :class="{ active: route.path.startsWith('/research') || route.path.startsWith('/cn/research') }"><el-icon><DataAnalysis /></el-icon><span>{{ t('研究记录') }}</span></RouterLink>
           <RouterLink to="/settings" :aria-label="t('设置')" :title="t('设置')" :class="{ active: route.path.startsWith('/settings') }"><el-icon><Setting /></el-icon><span>{{ t('设置') }}</span></RouterLink>
         </nav>
         <div v-if="session.recent.length" class="sidebar-recent"><p class="nav-label">{{ t('最近查看') }}</p><RouterLink v-for="company in session.recent.slice(0, 4)" :key="companyIdentity(company)" :to="companyRoute(company)"><span class="recent-dot">{{ (company.ticker || company.name).slice(0, 1) }}</span><span>{{ company.ticker }}<small>{{ company.name }}</small></span></RouterLink></div>
@@ -37,7 +38,7 @@ onMounted(session.checkHealth)
       <div class="workspace">
         <header class="topbar"><div class="breadcrumb"><span class="breadcrumb-root">{{ t('工作区') }}</span><span class="breadcrumb-divider">/</span><strong>{{ pageName }}</strong></div><GlobalSearch /><div class="topbar-right"><button class="icon-button theme-toggle" :aria-label="t(resolvedTheme === 'dark' ? '切换为浅色主题' : '切换为深色主题')" :title="t(resolvedTheme === 'dark' ? '切换为浅色主题' : '切换为深色主题')" @click="setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')"><el-icon><Sunny v-if="resolvedTheme === 'dark'" /><Moon v-else /></el-icon></button><button class="connection-state" :class="{ disconnected: !session.connected }" :title="t('重新检查服务连接')" @click="session.checkHealth"><span class="status-dot"></span><span>{{ t(session.connected ? '服务已连接' : '检查连接') }}</span><el-icon class="connection-icon"><Connection /></el-icon></button></div></header>
         <main id="main-content" tabindex="-1"><RouterView /></main>
-        <nav class="mobile-nav" :aria-label="t('移动端主导航')"><RouterLink to="/" :class="{ active: route.path === '/' || route.path.startsWith('/company') || route.path.startsWith('/cn/company') }"><el-icon><Search /></el-icon>{{ t('公司搜索') }}</RouterLink><RouterLink to="/research" :class="{ active: route.path.startsWith('/research') }"><el-icon><DataAnalysis /></el-icon>{{ t('研究记录') }}</RouterLink><RouterLink to="/settings" :class="{ active: route.path.startsWith('/settings') }"><el-icon><Setting /></el-icon>{{ t('设置') }}</RouterLink></nav>
+        <nav class="mobile-nav" :aria-label="t('移动端主导航')"><RouterLink to="/" :class="{ active: companyPage }"><el-icon><Search /></el-icon>{{ t('公司搜索') }}</RouterLink><RouterLink :to="activeMarket === 'CN' ? '/cn/research' : '/research'" :class="{ active: route.path.startsWith('/research') || route.path.startsWith('/cn/research') }"><el-icon><DataAnalysis /></el-icon>{{ t('研究记录') }}</RouterLink><RouterLink to="/settings" :class="{ active: route.path.startsWith('/settings') }"><el-icon><Setting /></el-icon>{{ t('设置') }}</RouterLink></nav>
         <footer class="footer"><span>FINSIGHT AI <span class="footer-separator">/</span> EVIDENCE BEFORE INSIGHT</span><span>{{ t('仅供研究和教育，不构成投资建议。') }}</span></footer>
       </div>
     </div>

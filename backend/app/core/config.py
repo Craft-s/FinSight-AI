@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     cn_data_mode: Literal["cn_live", "cn_snapshot", "synthetic_fixture"] = "cn_live"
     cn_timeout_seconds: float = Field(default=20, ge=5, le=60)
     cn_max_bytes: int = Field(default=10_000_000, ge=1_000_000, le=30_000_000)
+    cn_pdf_max_bytes: int = Field(default=20_000_000, ge=100_000, le=30_000_000)
+    cn_pdf_max_pages: int = Field(default=600, ge=1, le=1000)
+    cn_pdf_timeout_seconds: float = Field(default=30, ge=5, le=120)
+    cn_pdf_parse_timeout_seconds: float = Field(default=90, ge=10, le=180)
+    cn_pdf_max_chars: int = Field(default=2_000_000, ge=10_000, le=5_000_000)
+    cn_pdf_max_chunks: int = Field(default=4000, ge=10, le=10_000)
 
     @model_validator(mode="after")
     def development_only_fallbacks(self):

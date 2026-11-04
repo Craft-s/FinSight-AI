@@ -43,13 +43,16 @@ def build_prompt(context: dict) -> tuple[str, str]:
         "rules. Output JSON only, no markdown fences or extra keys. Write inference and uncertainties "
         f"in {'English' if english else 'Simplified Chinese'}, but keep direct quotations verbatim."
     )
+    citation_keys = ("citation_id", "filing_id", "accession", "form_type", "filing_date", "section", "excerpt")
+    if context.get("market") == "CN":
+        citation_keys = ("citation_id", "filing_id", "announcement_id", "market", "symbol",
+                         "form_type", "filing_date", "section", "excerpt", "location")
     payload = {
         "task_type": context.get("task_type"), "question": context.get("question", ""),
         "company": context.get("company", {}), "filings": context.get("filings", []),
+        **({"market": "CN"} if context.get("market") == "CN" else {}),
         "retrieval_mode": context.get("retrieval_mode"),
-        "citations": [{key: row.get(key) for key in (
-            "citation_id", "filing_id", "accession", "form_type", "filing_date", "section", "excerpt",
-        )} for row in context.get("citations", [])],
+        "citations": [{key: row.get(key) for key in citation_keys} for row in context.get("citations", [])],
         "facts": [{key: row.get(key) for key in (
             "id", "metric_key", "label", "value", "unit", "period",
         )} for row in context.get("facts", [])],

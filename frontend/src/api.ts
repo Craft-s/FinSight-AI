@@ -1,6 +1,6 @@
 import axios from 'axios'
 import type { Company, Filing, Health, LLMConfig, LLMConfigInput, LLMModelsResponse, LLMStatus, LLMTestResult, MetricsResponse, OverviewJob, OverviewRequest, Page, SyncJob, FilingDocument, EvidenceCitation, DocumentJob, JobAccepted, ResearchRequest, ResearchJob, ResearchReport } from './types'
-import type { CnCompany, CnFiling, CnMetrics, CnSource, CnStatus } from './types'
+import type { CnCompany, CnFiling, CnMetrics, CnSource, CnStatus, CnFilingDocument, CnEvidenceCitation, CnResearchRequest, CnResearchJob, CnResearchReport } from './types'
 import { cnSearchCompany, type ResearchMarket } from './market'
 
 const client = axios.create({ baseURL: '/api/v1', timeout: 25000 })
@@ -22,6 +22,17 @@ export const api = {
   cnDirectorySync: async (token: string) => (await client.post<JobAccepted>('/cn/directory/sync', {}, authorized(token))).data,
   cnJob: async (id: string, token: string) => (await client.get<SyncJob>(`/cn/sync/jobs/${encodeURIComponent(id)}`, authorized(token))).data,
   cnSource: async (id: string) => (await client.get<CnSource>(`/cn/sources/${encodeURIComponent(id)}`)).data,
+  cnDocuments: async (symbol: string, filingId: string) => (await client.get<{items:CnFilingDocument[];retrieval_mode:string}>(`/cn/companies/${encodeURIComponent(symbol)}/filings/${encodeURIComponent(filingId)}/documents`)).data,
+  cnSyncDocuments: async (symbol:string, filingId:string, token:string) => (await client.post<JobAccepted>(`/cn/companies/${encodeURIComponent(symbol)}/filings/${encodeURIComponent(filingId)}/documents/sync`,{},authorized(token))).data,
+  cnDocumentJob: async (id:string,token:string) => (await client.get<DocumentJob>(`/cn/documents/jobs/${encodeURIComponent(id)}`,authorized(token))).data,
+  cnEvidence: async (symbol:string,q:string,filingId?:string) => (await client.get<{items:CnEvidenceCitation[];retrieval_mode:string;scope_note?:string}>(`/cn/companies/${encodeURIComponent(symbol)}/evidence`,{params:{q,...(filingId?{filing_id:filingId}:{})}})).data,
+  cnCreateResearch: async (body:CnResearchRequest,token:string) => (await client.post<JobAccepted>('/cn/research/jobs',body,authorized(token))).data,
+  cnResearchJob: async (id:string,token:string) => (await client.get<CnResearchJob>(`/cn/research/jobs/${encodeURIComponent(id)}`,authorized(token))).data,
+  cnRetryResearch: async (id:string,token:string) => (await client.post<JobAccepted>(`/cn/research/jobs/${encodeURIComponent(id)}/retry`,{},authorized(token))).data,
+  cnCancelResearch: async (id:string,token:string) => (await client.post<CnResearchJob>(`/cn/research/jobs/${encodeURIComponent(id)}/cancel`,{},authorized(token))).data,
+  cnResearchHistory: async (token:string,page=1,pageSize=20) => (await client.get<Page<CnResearchJob>>('/cn/research/history',{...authorized(token),params:{page,page_size:pageSize}})).data,
+  cnResearchReport: async (id:string,token:string) => (await client.get<CnResearchReport>(`/cn/research/reports/${encodeURIComponent(id)}`,authorized(token))).data,
+  cnDownloadReport: async (id:string,token:string) => (await client.get<Blob>(`/cn/research/reports/${encodeURIComponent(id)}/download`,{...authorized(token),params:{format:'md'},responseType:'blob'})).data,
   company: async (cik: string) => (await client.get<Company>(`/companies/${encodeURIComponent(cik)}`)).data,
   metrics: async (cik: string, options: { frequency?: string; selection_policy?: string; as_of?: string; accession?: string } = {}) => (await client.get<MetricsResponse>(`/companies/${encodeURIComponent(cik)}/metrics`, { params: { frequency: 'annual', years: 5, ...options } })).data,
   filings: async (cik: string, type: string, page: number) => (await client.get<Page<Filing>>(`/companies/${encodeURIComponent(cik)}/filings`, { params: { type: type || undefined, page, page_size: 10 } })).data,

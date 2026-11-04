@@ -19,7 +19,7 @@ LIMITATIONS = [
     "仅提供当前保存的供应商口径，不支持历史当时已知口径或指定申报重述选择。",
     "年初至今为累计值，不是单季度；未对累计EPS或比率做差分。",
     "供应商报表的合并范围尚未逐份与原始PDF核对；归母净利润单独展示，不替代报表净利润。",
-    "A股PDF正文解析、AI研究和事件证据验证尚未接入。",
+    "PDF按文本层提取并保留页码，不含OCR或表格单元格认证；AI推论的语义支持仍需人工核查。",
 ]
 
 
@@ -173,7 +173,7 @@ def filings_for(session, symbol):
             rows.append({**row, "source_snapshot_id": record.id})
     rows = sorted({row["id"]: row for row in rows}.values(), key=lambda row: (row["filing_date"], row["id"]), reverse=True)
     return rows, ["公告列表来自保存的公开响应；只展示已取得的条目，不保证历史公告全覆盖。",
-                  "原文链接跳转至披露站点，PDF尚未在本应用解析或验证。"]
+                  "原文链接跳转至披露站点；准备正文后可检索文本与页码，提取结果仍需对照PDF核查。"]
 
 
 def run_cn_sync(job_id):

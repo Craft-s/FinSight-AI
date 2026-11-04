@@ -17,6 +17,8 @@ from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException
 
 from app.api.cn import router as cn_router
+from app.api.cn_documents import router as cn_documents_router
+from app.api.cn_research import router as cn_research_router
 from app.api.llm import router as llm_router
 from app.api.overview import router as overview_router
 from app.api.research import router as research_router
@@ -73,6 +75,8 @@ app.include_router(llm_router)
 app.include_router(overview_router)
 app.include_router(research_router)
 app.include_router(cn_router)
+app.include_router(cn_documents_router)
+app.include_router(cn_research_router)
 
 
 @app.middleware("http")

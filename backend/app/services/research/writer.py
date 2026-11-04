@@ -23,10 +23,13 @@ def write_markdown(result: dict, context: dict | None = None) -> str:
     def label(zh, en):
         return en if english else zh
     company = context.get("company", {})
+    market = context.get("market", result.get("market", "US"))
     task_labels = {"summary": label("单份财报总结", "Filing summary"), "comparison": label("两期财报对比", "Filing comparison"),
                    "event": label("事件解读", "Event analysis"), "question": label("财报问答", "Filing question")}
     lines = [f"# {escape_markdown(result.get('title') or label('财报研究', 'Filing research'))}", ""]
     lines.append(escape_markdown(company.get("name", "")))
+    if market == "CN":
+        lines.append(escape_markdown(company.get("symbol", result.get("symbol", ""))))
     _section(lines, label("研究范围与方法", "Scope and method"))
     lines.append(f"- {label('研究类型', 'Task')}: {escape_markdown(task_labels.get(result.get('task_type'), result.get('task_type', '')))}")
     lines.append(f"- {label('检索方式', 'Retrieval')}: {escape_markdown(result.get('retrieval_mode', context.get('retrieval_mode', '')))}")
@@ -34,7 +37,8 @@ def write_markdown(result: dict, context: dict | None = None) -> str:
     if context.get("question"):
         lines.append(f"- {label('问题', 'Question')}: {escape_markdown(context['question'])}")
     for filing in context.get("filings", []):
-        fields = " · ".join(str(filing.get(key, "")) for key in ("form_type", "accession", "filing_date", "report_date"))
+        keys = ("form_type", "id", "filing_date", "report_date") if market == "CN" else ("form_type", "accession", "filing_date", "report_date")
+        fields = " · ".join(str(filing.get(key, "")) for key in keys)
         lines.append(f"- {label('已选申报', 'Selected filing')}: {escape_markdown(fields)}")
     generation = context.get("generation", {})
     if generation:
@@ -75,10 +79,13 @@ def write_markdown(result: dict, context: dict | None = None) -> str:
     _section(lines, label("引用与原始出处", "Citations and original sources"))
     for citation in result.get("citations", []):
         ref = escape_markdown(citation.get("citation_id", ""))
-        details = " · ".join(str(citation.get(key, "")) for key in ("form_type", "accession", "filing_date", "section"))
+        keys = ("form_type", "announcement_id", "filing_date", "section") if market == "CN" else ("form_type", "accession", "filing_date", "section")
+        details = " · ".join(str(citation.get(key, "")) for key in keys)
         lines.extend([f"### {ref}", "", escape_markdown(details), ""])
-        url = safe_citation_url(citation.get("source_url"), citation.get("accession"))
-        lines.append(f"[{label('SEC 原文', 'Original SEC filing')}]({url})" if url else label("来源链接未通过校验，未生成可点击链接。", "The source URL failed validation and is not linked."))
+        page = (citation.get("location") or {}).get("page_start") if market == "CN" else None
+        url = safe_citation_url(citation.get("source_url"), citation.get("accession"), market=market, page=page)
+        source_label = label("巨潮 PDF 原文", "Original CNINFO PDF") if market == "CN" else label("SEC 原文", "Original SEC filing")
+        lines.append(f"[{source_label}]({url})" if url else label("来源链接未通过校验，未生成可点击链接。", "The source URL failed validation and is not linked."))
         lines.extend(["", "> " + escape_markdown(citation.get("excerpt", "")), ""])
         identity = {key: citation.get(key) for key in ("chunk_id", "document_sha256", "location")}
         lines.append(escape_markdown(json.dumps(identity, ensure_ascii=False, sort_keys=True)))

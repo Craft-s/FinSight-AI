@@ -53,3 +53,15 @@ raw_json保留原UTF-8文本，重新编码可核对SHA-256（包括原有BOM）
 
 CN指标币种CNY，EPS单位CNY/shares；年度与累计频率独立于SEC季度规则。18项字段及算法见[A股财务口径](A_SHARE_SUPPORT.md)，不套用US GAAP等价映射或自动历史回测口径。
 
+## A 股 PDF 与研究表（g52a01 / h52a02）
+
+| 表 | 关键字段与用途 |
+|---|---|
+| `cn_documents` | symbol、filing_id、source_snapshot_id、raw_bytes、sha256、parser_version、page_count、coverage；原字节/解析版本不可变 |
+| `cn_document_chunks` | document_id、证券/公告、chunk_index、content、content_sha256、section、location；页码和文本偏移 |
+| `cn_document_jobs` | owner、证券/公告、冻结公告输入、active_key、status、result、attempts、error；异步PDF准备 |
+| `cn_research_jobs` | owner、symbol、模型配置版本/binding、fingerprint、冻结input_json、report_id、parent_job_id、status；CN研究生命周期 |
+| `cn_research_reports` | owner、job_id、symbol、content、markdown、provider/model、usage、duration；受权报告 |
+
+CN引文使用market=CN、symbol、announcement_id/filing_id、文档ID/hash、location.page_start/page_end，不能伪造SEC accession。coverage列出无文字页并标记提取质量未独立认证；所有页有文字不等于完整提取。CN研究facts为空，避免把最新供应商指标混入指定PDF事实。
+

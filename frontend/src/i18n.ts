@@ -10,8 +10,9 @@ import { designTranslations } from './locales/design'
 import { designSettingsTranslations } from './locales/design-settings'
 import { designResearchTranslations } from './locales/design-research'
 import { cnTranslations } from './locales/cn'
+import { cnResearchTranslations } from './locales/cn-research'
 
-const englishMessages: Record<string, string> = { ...baseTranslations, ...pageTranslations, ...companyTranslations, ...llmTranslations, ...researchTranslations, ...designTranslations, ...designSettingsTranslations, ...designResearchTranslations, ...cnTranslations }
+const englishMessages: Record<string, string> = { ...baseTranslations, ...pageTranslations, ...companyTranslations, ...llmTranslations, ...researchTranslations, ...designTranslations, ...designSettingsTranslations, ...designResearchTranslations, ...cnTranslations, ...cnResearchTranslations }
 
 /** Add a language here with its messages, control locale, and display conventions. */
 export const LANGUAGE_DEFINITIONS = {

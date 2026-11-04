@@ -94,3 +94,11 @@
   .cn-directory-panel { padding: 18px 16px; margin-bottom: 22px; }
   .cn-company-page .metric-value { font-size: 22px; }
 }
+
+.cn-filing-actions { display: flex; align-items: center; gap: 14px; flex-shrink: 0; flex-wrap: wrap; }
+.cn-history-market { padding: 18px 24px; margin-bottom: 20px; }
+.cn-history-market label { display: flex; gap: 16px; align-items: center; font-size: 13px; font-weight: 600; }
+.cn-history-market select { padding: 8px 12px; color: var(--text-primary); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; max-width: 100%; }
+.cn-history-market select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.cn-company-page .research-workbench, .cn-company-page .evidence-browser { margin-top: 16px; }
+@media(max-width:560px) { .cn-filing-actions { width:100%; gap:12px; } .cn-history-market { padding:16px; } .cn-company-page .evidence-controls { flex-wrap:wrap; } .cn-company-page .evidence-controls > label { min-width:0; width:100%; } }

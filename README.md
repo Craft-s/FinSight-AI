@@ -23,8 +23,8 @@ FinSight AI 将公司财务、财报原文与 AI 研究放在同一工作台中�
 | 披露口径 | 最新重述、截至日期、指定申报版本 | 最新保存的供应商报表快照 |
 | 来源追溯 | SEC concept、精确值、操作数、申报及原文版本 | 原始响应页、报表字段、快照与 SHA-256 |
 | 财报与公告 | 10-K、10-Q、8-K 列表及受控正文准备流程 | 巨潮财报公告列表与官方 PDF 链接 |
-| 正文检索 | HTML 清洗分块、PostgreSQL 全文检索 | PDF 正文解析待实现 |
-| AI 研究 | 模型适配、异步研究、证据校验、历史与 Markdown 导出 | AI 研究与事件证据链待实现 |
+| 正文检索 | HTML 清洗分块、PostgreSQL 全文检索 | 文本型 PDF 提取、页码分块与中英文关键词检索 |
+| AI 研究 | 模型适配、异步研究、证据校验、历史与 Markdown 导出 | 总结/两期对比/问答、页码证据、独立任务历史与 Markdown 导出 |
 
 ### 精确的财务计算与展示
 
@@ -53,6 +53,7 @@ FinSight AI 将公司财务、财报原文与 AI 研究放在同一工作台中�
 
 ![深色财务趋势与申报](docs/screenshots/32-ui-financial-trend-dark.jpg)
 ![A股精确数值与来源](docs/screenshots/45-cn-source-exact.jpg)
+![A股真实PDF页码证据](docs/screenshots/48-cn-pdf-evidence.jpg)
 ![真实财报正文证据检索](docs/screenshots/39-ui-real-evidence-light.jpg)
 ![模型设置](docs/screenshots/34-ui-settings-light.jpg)
 ![英文移动端](docs/screenshots/47-cn-bank-english-dark-mobile.jpg)
@@ -67,7 +68,7 @@ FinSight AI 将公司财务、财报原文与 AI 研究放在同一工作台中�
 | 界面与可视化 | Element Plus、ECharts、语义化 CSS Design System |
 | 后端 | Python 3.12、FastAPI、Pydantic、SQLAlchemy、Alembic |
 | 数据与异步任务 | PostgreSQL、Redis、RQ |
-| 正文与检索 | BeautifulSoup、lxml、PostgreSQL FTS |
+| 正文与检索 | BeautifulSoup、lxml、pypdf、PostgreSQL FTS |
 | 模型适配 | OpenAI、DeepSeek、Gemini、Ollama |
 | 测试与质量 | pytest、Ruff、Vitest、ESLint、vue-tsc、Playwright |
 | 工程与运行 | GitHub Actions、Docker Compose、Nginx |
@@ -122,17 +123,19 @@ docker compose -p finsight-demo exec api python -m app.cli cn-sync --symbol 6005
 
 A 股当前使用东方财富结构化财务数据和巨潮公司目录/财报链接，无需额外模型 Key 或 SEC 联系邮箱。已完成沪、深、京三家公司的真实在线同步验证；详细口径及覆盖限制见[A 股说明](docs/A_SHARE_SUPPORT.md)。
 
+在公司页“财报正文与 AI 研究”准备 PDF，即可检索已保存文本，按页码打开原文。配置并验证可用模型后，可创建总结、两期对比或问答；研究仅引用所选 PDF，不将最新供应商财务指标冒充该份报告原文。使用方式与资源限制见[A 股正文研究](docs/A_SHARE_RESEARCH.md)。
+
 美股直接在线同步需要新的 `sec_live` 数据库、真实 `SEC_USER_AGENT` 联系信息及可用网络。数据模式绑定后不能直接在原库切换。原生 Python/Node 开发、Windows/WSL、模型配置和备份步骤见[运行指南](docs/DEPLOYMENT.md)。
 
 ## 测试与验证
 
-已完成的 GitHub Actions 验证见[成功运行记录](https://github.com/Craft-s/FinSight-AI/actions/runs/41795833117)，对应提交 `0ed9a17`：
+检查覆盖后端、前端、浏览器、发布保护与完整容器运行。各次云端状态见[GitHub Actions](https://github.com/Craft-s/FinSight-AI/actions/workflows/ci.yml)，本地及实际资料验证见[测试记录](docs/TEST_RESULTS.md)。
 
 | 检查 | 已验证结果 |
 |---|---|
-| 后端 | Ruff、依赖一致性、584 项测试，使用独立 PostgreSQL/Redis |
-| 前端 | Lint、48 项单元测试、TypeScript 与生产构建 |
-| 浏览器 | 类型/Lint、14 项 Chromium 端到端测试，使用独立 PostgreSQL |
+| 后端 | Ruff、依赖一致性、683 项测试，使用独立 PostgreSQL/Redis |
+| 前端 | Lint、54 项单元测试、TypeScript 与生产构建 |
+| 浏览器 | 类型/Lint、15 项端到端测试，使用独立 PostgreSQL；本机 Edge，CI Chromium |
 | 发布保护 | 10 项回归及 Git 工作树/暂存区隐私检查 |
 | 容器 | Compose 构建、启动、真实归档导入与 HTTP 烟雾测试 |
 
@@ -164,7 +167,7 @@ PostgreSQL/RQ 测试需要独立的 `TEST_DATABASE_URL` 与 `TEST_REDIS_URL`，�
 | 4. 检索与研究 | 正文检索、证据约束及异步研究流程已实现；真实生成与语义评估待验收 |
 | 5. 工程交付 | 远程 CI 和容器闭环已通过；Windows 桌面宿主与安装包待实现 |
 
-当前应用面向个人本地使用，采用单用户权限模型。A 股尚未提供 PDF 正文解析、AI 研究、单季度差分和历史 as-of/as-filed；美股 SEC 直连及真实 8-K 附件在线链路仍待验收。项目没有提供实时行情，也未完成全市场逐家公司核验。
+当前应用面向个人本地使用，采用单用户权限模型。PDF 只提取文本层，不含扫描件 OCR、表格单元格认证或完整提取保证。A 股单季度差分、历史 as-of/as-filed 及事件研究仍待实现；美股 SEC 直连及真实 8-K 附件在线链路仍待验收。项目没有提供实时行情，也未完成全市场逐家公司核验。
 
 ## 数据来源与许可
 
@@ -184,6 +187,7 @@ PostgreSQL/RQ 测试需要独立的 `TEST_DATABASE_URL` 与 `TEST_REDIS_URL`，�
 | [API](docs/API.md) / [数据字典](docs/DATA_DICTIONARY.md) | 接口、数据字段、精度和错误语义 |
 | [运行指南](docs/DEPLOYMENT.md) | 本地运行、桌面目标、模型配置、备份与排错 |
 | [A 股说明](docs/A_SHARE_SUPPORT.md) | 市场标识、人民币口径、公告和来源限制 |
+| [A 股正文研究](docs/A_SHARE_RESEARCH.md) | PDF 准备、页码证据、模型研究与安全预算 |
 | [测试计划](docs/TEST_PLAN.md) / [测试记录](docs/TEST_RESULTS.md) | 验证方法、执行结果与未验收项目 |
 | [设计系统](docs/DESIGN_SYSTEM.md) | 主题、排版、组件状态和响应式规则 |
 | [安全说明](docs/SECURITY.md) / [隐私检查](docs/PRIVACY_REVIEW.md) | 权限、凭据、来源保护与发布检查 |

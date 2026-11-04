@@ -138,7 +138,7 @@ ReportOut包含id、job_id、cik、task_type、title、language、created_at、p
 
 指标响应为`{items,source_kind,frequency,currency:'CNY',selection_policy:'latest_provider_snapshot',limitations}`。`items`沿用Metric字段，原始值/同比均为十进制字符串；累计为`period_type=cumulative`，不是quarterly。不支持的`as_of`、`accession`及其他selection_policy明确422，不能用当前供应商重述资料冒充历史当时信息。
 
-财务18项定义、归母与报表净利、营业总收入与营业收入、缺失和毛利保护见[A股说明](A_SHARE_SUPPORT.md)。每个来源事实绑定准确分页快照ID/URL/hash及字段；派生值记录全部操作数。公告返回`title/form_type/filing_date/report_date/source_url/source_snapshot_id`，并可带原始`source_security_code/source_org_id`；PDF尚未在应用中解析。前端只打开固定巨潮来源链接。
+财务18项定义、归母与报表净利、营业总收入与营业收入、缺失和毛利保护见[A股说明](A_SHARE_SUPPORT.md)。每个来源事实绑定准确分页快照ID/URL/hash及字段；派生值记录全部操作数。公告返回`title/form_type/filing_date/report_date/source_url/source_snapshot_id`，并可带原始`source_security_code/source_org_id`。文本型PDF正文、页码证据和CN研究新增接口见[A股正文与研究API](A_SHARE_RESEARCH.md#接口与存储)，与SEC命名空间分离。
 
 主要错误：`CN_COMPANY_NOT_FOUND`、`CN_DATA_MODE_MISMATCH`、`CN_HISTORY_UNSUPPORTED`、`CN_FINANCIAL_DATA_INCOMPLETE`、`CN_SOURCE_MANIFEST_INVALID`、`CN_RATE_LIMITED`、`CN_NETWORK_ERROR`、`CN_SOURCE_COMPANY_MISMATCH`、`CN_COVERAGE_LIMIT`。错误信封、request_id及管理员身份约束继续沿用既有协议。
 

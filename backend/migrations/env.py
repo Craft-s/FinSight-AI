@@ -3,7 +3,15 @@ from logging.config import fileConfig
 from alembic import context
 
 from app.core.config import get_settings
-from app.db import cn_models, document_models, llm_models, overview_models, research_models  # noqa: F401 - register all migration metadata
+from app.db import (  # noqa: F401 - register all migration metadata
+    cn_document_models,
+    cn_models,
+    cn_research_models,
+    document_models,
+    llm_models,
+    overview_models,
+    research_models,
+)
 from app.db.models import Base
 from app.db.session import get_engine
 
