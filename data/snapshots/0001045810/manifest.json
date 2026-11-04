@@ -1,0 +1,42 @@
+{
+  "source_kind": "sec_snapshot",
+  "cik": "0001045810",
+  "origin": "third_party_archival_mirror",
+  "repository": "https://github.com/dgunning/edgartools",
+  "commit": "3931b22077eee1e0d2b77a8c5a61ab415d51ae0b",
+  "downloaded_at": "2026-10-28T13:53:05.837580Z",
+  "fetched_at": "2026-03-05T11:20:23Z",
+  "sha256": {
+    "submissions": "c1c860882d4ffd0d59ce7450aed17b0323f4d70559fc8eaea0016d5e15ab5dd5",
+    "companyfacts": "19ef503a5770f5660964b3c3aea6937579d9b359da344afe6a9adf59c63d26ff"
+  },
+  "sources": {
+    "submissions": {
+      "original_url": "https://data.sec.gov/submissions/CIK0001045810.json",
+      "http_status": 200,
+      "fetched_at": "2026-03-05T11:20:23Z",
+      "original_response_date": "Thu, 05 Mar 2026 11:20:23 GMT",
+      "body_encoding": "utf-8",
+      "body_sha256": "c1c860882d4ffd0d59ce7450aed17b0323f4d70559fc8eaea0016d5e15ab5dd5",
+      "body_bytes": 156346,
+      "archive_url": "https://raw.githubusercontent.com/dgunning/edgartools/3931b22077eee1e0d2b77a8c5a61ab415d51ae0b/tests/cassettes/test_company_repr.yaml",
+      "archive_path": "tests/cassettes/test_company_repr.yaml",
+      "archive_sha256": "43faf61f939e42bae526364976feedb3ef9fe4b4e085b212f954c81e04dd27be",
+      "archive_commit": "3931b22077eee1e0d2b77a8c5a61ab415d51ae0b"
+    },
+    "companyfacts": {
+      "original_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json",
+      "http_status": 200,
+      "fetched_at": "2026-10-24T18:01:15Z",
+      "original_response_date": "Sat, 24 Oct 2026 18:01:15 GMT",
+      "body_encoding": "utf-8",
+      "body_sha256": "19ef503a5770f5660964b3c3aea6937579d9b359da344afe6a9adf59c63d26ff",
+      "body_bytes": 4092966,
+      "archive_url": "https://raw.githubusercontent.com/dgunning/edgartools/3931b22077eee1e0d2b77a8c5a61ab415d51ae0b/tests/cassettes/test_issue_910_nvda_company_facts.yaml",
+      "archive_path": "tests/cassettes/test_issue_910_nvda_company_facts.yaml",
+      "archive_sha256": "3b2ea24b50285edef8caeb44a5b7726de5529190788d89ef6a92a6c8ba4b11a0",
+      "archive_commit": "3931b22077eee1e0d2b77a8c5a61ab415d51ae0b"
+    }
+  },
+  "notice": "Historical SEC HTTP response bodies extracted unchanged from public VCR recordings. Downloaded from a third-party archive, not fetched directly from SEC by FinSight AI. Source response dates differ by document. Top-level fetched_at is the earliest source date and is a conservative bundle timestamp, not a claim that all financial facts were known then."
+}

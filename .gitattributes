@@ -1,0 +1,10 @@
+* text=auto
+*.sh text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.jpg binary
+
+# Archived source bytes are hashed for provenance; never normalize line endings.
+data/snapshots/** -text -eol
+data/documents/** -text -eol
+

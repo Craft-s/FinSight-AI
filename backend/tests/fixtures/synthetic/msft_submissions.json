@@ -1,0 +1,62 @@
+{
+  "_fixture": {
+    "source_kind": "synthetic_fixture",
+    "warning": "SYNTHETIC TEST VALUES, NOT SEC FINANCIAL DATA"
+  },
+  "cik": "0000789019",
+  "name": "Microsoft Corporation",
+  "tickers": [
+    "MSFT"
+  ],
+  "exchanges": [
+    "Nasdaq"
+  ],
+  "fiscalYearEnd": "0630",
+  "filings": {
+    "recent": {
+      "accessionNumber": [
+        "0000789019-22-000001",
+        "0000789019-23-000001",
+        "0000789019-24-000001",
+        "0000789019-24-000002",
+        "0000789019-24-000003"
+      ],
+      "form": [
+        "10-K",
+        "10-K",
+        "10-K",
+        "10-Q",
+        "8-K"
+      ],
+      "filingDate": [
+        "2022-07-30",
+        "2023-07-30",
+        "2024-07-30",
+        "2024-12-01",
+        "2024-12-01"
+      ],
+      "reportDate": [
+        "2022-06-30",
+        "2023-06-30",
+        "2024-06-30",
+        "2024-12-01",
+        "2024-12-01"
+      ],
+      "primaryDocument": [
+        "synthetic-2022.htm",
+        "synthetic-2023.htm",
+        "synthetic-2024.htm",
+        "synthetic-10-Q.htm",
+        "synthetic-8-K.htm"
+      ],
+      "items": [
+        "",
+        "",
+        "",
+        "",
+        "2.02,9.01"
+      ]
+    },
+    "files": []
+  }
+}

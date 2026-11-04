@@ -1,0 +1,62 @@
+{
+  "_fixture": {
+    "source_kind": "synthetic_fixture",
+    "warning": "SYNTHETIC TEST VALUES, NOT SEC FINANCIAL DATA"
+  },
+  "cik": "0001045810",
+  "name": "NVIDIA Corporation",
+  "tickers": [
+    "NVDA"
+  ],
+  "exchanges": [
+    "Nasdaq"
+  ],
+  "fiscalYearEnd": "0131",
+  "filings": {
+    "recent": {
+      "accessionNumber": [
+        "0001045810-22-000001",
+        "0001045810-23-000001",
+        "0001045810-24-000001",
+        "0001045810-24-000002",
+        "0001045810-24-000003"
+      ],
+      "form": [
+        "10-K",
+        "10-K",
+        "10-K",
+        "10-Q",
+        "8-K"
+      ],
+      "filingDate": [
+        "2022-02-28",
+        "2023-02-28",
+        "2024-02-28",
+        "2024-12-01",
+        "2024-12-01"
+      ],
+      "reportDate": [
+        "2022-01-30",
+        "2023-01-29",
+        "2024-01-28",
+        "2024-12-01",
+        "2024-12-01"
+      ],
+      "primaryDocument": [
+        "synthetic-2022.htm",
+        "synthetic-2023.htm",
+        "synthetic-2024.htm",
+        "synthetic-10-Q.htm",
+        "synthetic-8-K.htm"
+      ],
+      "items": [
+        "",
+        "",
+        "",
+        "",
+        "2.02,9.01"
+      ]
+    },
+    "files": []
+  }
+}

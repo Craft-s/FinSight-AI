@@ -1,0 +1,40 @@
+{
+  "name": "finsight-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vue-tsc -b && vite build",
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run src",
+    "test:e2e": "playwright test",
+    "test:e2e:check": "tsc --project e2e/tsconfig.json && eslint e2e/workspace.spec.ts e2e/cn.spec.ts e2e/start-api.mjs playwright.config.ts",
+    "test:e2e:install": "playwright install chromium",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.8.4",
+    "echarts": "^5.6.0",
+    "element-plus": "^2.9.7",
+    "pinia": "^3.0.1",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@playwright/test": "1.64.1",
+    "@types/node": "^22.13.10",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "eslint": "^9.22.0",
+    "eslint-plugin-vue": "^10.0.0",
+    "globals": "^16.0.0",
+    "typescript": "~5.7.3",
+    "typescript-eslint": "^8.26.1",
+    "vite": "^6.2.2",
+    "vitest": "^3.0.8",
+    "vue-tsc": "^2.2.8"
+  }
+}

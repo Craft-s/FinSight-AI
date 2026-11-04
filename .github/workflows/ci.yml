@@ -1,0 +1,155 @@
+name: FinSight checks
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  public-files:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s scripts/tests
+      - run: python scripts/check_public_files.py
+
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17.6-alpine
+        env:
+          POSTGRES_USER: finsight
+          POSTGRES_PASSWORD: ci-disposable-only
+          POSTGRES_DB: finsight_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U finsight -d finsight_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7.4.5-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+      TEST_DATABASE_URL: postgresql+psycopg://finsight:ci-disposable-only@127.0.0.1:5432/finsight_test
+      TEST_REDIS_URL: redis://127.0.0.1:6379/15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.lock && pip install --no-deps -e .
+      - run: ruff check . ../scripts/manage.py ../scripts/smoke_http.py
+      - run: ruff check --config pyproject.toml ../frontend/e2e/serve_api.py
+      - run: pip check
+      - run: pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17.6-alpine
+        env:
+          POSTGRES_USER: finsight
+          POSTGRES_PASSWORD: ci-e2e-disposable-only
+          POSTGRES_DB: finsight_e2e_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U finsight -d finsight_e2e_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7.4.5-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      # Disposable job-local data only. serve_api.py never reads repository .env.
+      FINSIGHT_E2E_DATABASE_URL: postgresql+psycopg://finsight:ci-e2e-disposable-only@127.0.0.1:5432/finsight_e2e_test
+      FINSIGHT_E2E_REDIS_URL: redis://127.0.0.1:6379/14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - run: pip install -r ../backend/requirements.lock && pip install --no-deps -e ../backend
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e:check
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failure-diagnostics
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 7
+
+  containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # Dedicated runner-local volumes. No real model keys or SEC requests.
+      COMPOSE_PROJECT_NAME: finsight-ci
+      POSTGRES_PASSWORD: ci-container-disposable-only
+      LOCAL_ADMIN_TOKEN: finsight-ci-disposable-admin-token
+      DATA_MODE: sec_snapshot
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
+      - run: docker compose up --build -d --wait --wait-timeout 180
+      - name: Import real archived JSON and filing HTML
+        run: |
+          for cik in 0000320193 0000789019 0001045810; do
+            docker compose exec -T api python -m app.cli import-snapshot --directory "/data/snapshots/$cik"
+          done
+          docker compose exec -T api python -m app.cli import-document --manifest /data/documents/0000320193/0000320193-24-000123/manifest.json
+      - run: python scripts/smoke_http.py --base-url http://127.0.0.1:8080
+      - if: failure()
+        run: docker compose logs --no-color --tail 100
+      - if: always()
+        run: docker compose down --volumes --remove-orphans

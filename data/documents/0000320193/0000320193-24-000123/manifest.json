@@ -1,0 +1,19 @@
+{
+  "file": "aapl-20240928.htm",
+  "cik": "0000320193",
+  "accession": "0000320193-24-000123",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/aapl-20240928.htm",
+  "source_kind": "sec_snapshot",
+  "fetched_at": "2026-11-03T08:33:10.552161+00:00",
+  "sha256": "ba4222c4fbd8ddfbd63982bcef63ffefba232bf079a89d628418be5f10935af0",
+  "role": "primary",
+  "source_metadata": {
+    "origin": "third_party_archival_mirror",
+    "archive_url": "https://raw.githubusercontent.com/dgunning/edgartools/3931b22077eee1e0d2b77a8c5a61ab415d51ae0b/data/html/Apple.10-K.html",
+    "archive_commit": "3931b22077eee1e0d2b77a8c5a61ab415d51ae0b",
+    "archive_license": "MIT; LICENSE-EDGARTOOLS.txt",
+    "archive_captured_at": null,
+    "fetched_at_semantics": "Time downloaded from the third-party archive, not a live SEC fetch. Original SEC capture time unknown.",
+    "attachment_status": "not_loaded"
+  }
+}

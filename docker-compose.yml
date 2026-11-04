@@ -1,0 +1,103 @@
+name: finsight-ai
+
+x-backend: &backend
+  build: ./backend
+  environment: &environment
+    DATABASE_URL: postgresql+psycopg://finsight:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/finsight
+    REDIS_URL: redis://redis:6379/0
+    LOCAL_ADMIN_TOKEN: ${LOCAL_ADMIN_TOKEN:?Set LOCAL_ADMIN_TOKEN in .env}
+    SEC_USER_AGENT: ${SEC_USER_AGENT:-}
+    DATA_MODE: ${DATA_MODE:-sec_live}
+    CN_DATA_MODE: ${CN_DATA_MODE:-cn_live}
+    CN_TIMEOUT_SECONDS: ${CN_TIMEOUT_SECONDS:-20}
+    CN_MAX_BYTES: ${CN_MAX_BYTES:-10000000}
+    TASK_MODE: rq
+    DEVELOPMENT: "false"
+    SNAPSHOT_DIRECTORY: /data/snapshots
+    CORS_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+    MASTER_ENCRYPTION_KEY: ${MASTER_ENCRYPTION_KEY:-}
+    OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+    LLM_MODEL_CACHE_SECONDS: ${LLM_MODEL_CACHE_SECONDS:-120}
+    DOCUMENT_MAX_BYTES: ${DOCUMENT_MAX_BYTES:-15000000}
+    DOCUMENT_MAX_CHUNKS: ${DOCUMENT_MAX_CHUNKS:-4000}
+  volumes:
+    - ./data/snapshots:/data/snapshots:ro
+    - ./data/documents:/data/documents:ro
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_USER: finsight
+      POSTGRES_DB: finsight
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finsight -d finsight"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4.5-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    <<: *backend
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    <<: *backend
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3).close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  worker:
+    <<: *backend
+    command: ["python", "-m", "app.workers.run"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:

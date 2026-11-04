@@ -1,0 +1,42 @@
+{
+  "source_kind": "sec_snapshot",
+  "cik": "0000789019",
+  "origin": "third_party_archival_mirror",
+  "repository": "https://github.com/dgunning/edgartools",
+  "commit": "3931b22077eee1e0d2b77a8c5a61ab415d51ae0b",
+  "downloaded_at": "2026-10-28T13:53:00.310772Z",
+  "fetched_at": "2026-03-05T11:26:33Z",
+  "sha256": {
+    "submissions": "901519571e389e3d452a6fe60ac008e2ecf94addecec85d5f233b18f4974b9df",
+    "companyfacts": "048bebfdc75cd59995431cca0af5fe62c721b4567a6f15e23727450245bd35e1"
+  },
+  "sources": {
+    "submissions": {
+      "original_url": "https://data.sec.gov/submissions/CIK0000789019.json",
+      "http_status": 200,
+      "fetched_at": "2026-03-05T11:26:33Z",
+      "original_response_date": "Thu, 05 Mar 2026 11:26:33 GMT",
+      "body_encoding": "utf-8",
+      "body_sha256": "901519571e389e3d452a6fe60ac008e2ecf94addecec85d5f233b18f4974b9df",
+      "body_bytes": 177039,
+      "archive_url": "https://raw.githubusercontent.com/dgunning/edgartools/3931b22077eee1e0d2b77a8c5a61ab415d51ae0b/tests/cassettes/test_company_repr.yaml",
+      "archive_path": "tests/cassettes/test_company_repr.yaml",
+      "archive_sha256": "43faf61f939e42bae526364976feedb3ef9fe4b4e085b212f954c81e04dd27be",
+      "archive_commit": "3931b22077eee1e0d2b77a8c5a61ab415d51ae0b"
+    },
+    "companyfacts": {
+      "original_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
+      "http_status": 200,
+      "fetched_at": "2026-03-25T01:07:21Z",
+      "original_response_date": "Wed, 25 Mar 2026 01:07:21 GMT",
+      "body_encoding": "utf-8",
+      "body_sha256": "048bebfdc75cd59995431cca0af5fe62c721b4567a6f15e23727450245bd35e1",
+      "body_bytes": 4717676,
+      "archive_url": "https://raw.githubusercontent.com/dgunning/edgartools/3931b22077eee1e0d2b77a8c5a61ab415d51ae0b/tests/cassettes/TestCompanyTTMIntegration.test_msft_fiscal_year_labels_match_fiscal_periods.yaml",
+      "archive_path": "tests/cassettes/TestCompanyTTMIntegration.test_msft_fiscal_year_labels_match_fiscal_periods.yaml",
+      "archive_sha256": "03a9d143128da5525f787aad869898cd1bb2636a5a63e48dec8c1a85ce95af8e",
+      "archive_commit": "3931b22077eee1e0d2b77a8c5a61ab415d51ae0b"
+    }
+  },
+  "notice": "Historical SEC HTTP response bodies extracted unchanged from public VCR recordings. Downloaded from a third-party archive, not fetched directly from SEC by FinSight AI. Source response dates differ by document. Top-level fetched_at is the earliest source date and is a conservative bundle timestamp, not a claim that all financial facts were known then."
+}
