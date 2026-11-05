@@ -30,8 +30,11 @@ function changeLanguage(value: unknown) { if (isSupportedLocale(value)) setLocal
         </div>
       </section>
       <section id="session-access" class="panel settings-panel session-panel">
-        <div class="panel-heading"><span class="settings-section-icon"><el-icon><Lock /></el-icon></span><div><h2>{{ t('同步操作授权') }}</h2><p>{{ t('查询已保存的数据无需授权。重新同步需要部署者配置的访问令牌。') }}</p></div></div>
-        <form class="session-access-form" @submit.prevent="save">
+        <div class="panel-heading"><span class="settings-section-icon"><el-icon><Lock /></el-icon></span><div><h2>{{ t('同步操作授权') }}</h2><p>{{ t(session.desktopSession ? '桌面应用已为本机工作区授权。' : '查询已保存的数据无需授权。重新同步需要部署者配置的访问令牌。') }}</p></div></div>
+        <div v-if="session.desktopSession" class="session-access-form">
+          <p class="settings-confirmation"><el-icon><CircleCheck /></el-icon>{{ t('桌面会话已授权') }}</p>
+        </div>
+        <form v-else class="session-access-form" @submit.prevent="save">
           <div class="model-label-row"><label for="admin-token">{{ t('本地管理员访问令牌') }}</label><span class="session-memory-badge" :class="{ loaded: session.adminToken }">{{ t(session.adminToken ? '已载入令牌' : '未载入令牌') }}</span></div>
           <el-input id="admin-token" v-model="draftToken" type="password" show-password :placeholder="t('输入 LOCAL_ADMIN_TOKEN')" autocomplete="off" :maxlength="512" />
           <p class="field-hint">{{ t('仅保存在当前页面会话内存中，刷新页面后清除。此处不接受模型 API Key。') }}</p>

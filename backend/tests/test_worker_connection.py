@@ -10,6 +10,7 @@ from uuid import uuid4
 
 import pytest
 from redis import Redis
+from redis.connection import UnixDomainSocketConnection
 from redis.exceptions import TimeoutError as RedisTimeoutError
 from rq import Queue, Worker
 from rq.exceptions import DequeueTimeout, StopRequested
@@ -22,7 +23,16 @@ def test_url_short_timeout_cannot_override_worker_blocking_timeout():
     worker = build_worker("redis://localhost:6379/15?socket_timeout=0.01", worker_ttl=16, prepare_for_work=False)
     assert worker.dequeue_timeout == 1
     assert worker.connection.connection_pool.connection_kwargs["socket_timeout"] == worker.connection_timeout == 11
+    assert worker.connection.connection_pool.connection_kwargs["socket_keepalive"] is True
     assert worker.queues[0].connection is worker.connection
+
+
+def test_unix_socket_pool_creates_connection_without_tcp_keepalive():
+    worker = build_worker("unix:///tmp/finsight-worker.sock", worker_ttl=16, prepare_for_work=False)
+    connection = worker.connection.connection_pool.make_connection()
+    assert isinstance(connection, UnixDomainSocketConnection)
+    assert connection.path == "/tmp/finsight-worker.sock"
+    assert connection.socket_timeout == 11
 
 
 def test_dequeue_timeout_reconnects_and_retries_but_signals_propagate(monkeypatch):

@@ -8,15 +8,7 @@
 
 目标体验：安装后从桌面或开始菜单打开 FinSight AI，在独立程序窗口完成公司搜索、财务阅读、来源追溯、模型设置和研究。程序负责本地服务的就绪检查、可见的启动错误和退出协调；用户正常使用时无需手动启动终端或开发服务器。已经保存的数据可在断网时阅读，在线同步与云模型仍需可用网络；Ollama 仍需已安装并可达的模型服务。
 
-当前没有桌面宿主、内置后端运行时或安装包，现有 `start_local.ps1` 是开发恢复脚本。源码 ZIP 也不属于可双击运行的桌面发行包。桌面技术选择应先完成一个最小可运行验证，再锁定版本与打包工具：
-
-- 复用 Vue 3 / TypeScript 构建产物和现有 FastAPI API，避免重写已验证的财务计算与证据逻辑。
-- Electron 可沿用现有 JavaScript 工具链，但需承担其运行时体积与安全维护；Tauri 需要补充 Rust、Windows C++ 构建工具及 WebView2 构建/运行条件。当前项目没有安装这两套桌面依赖，未将任一方案标记为已实施。参见 [Electron 打包](https://www.electronjs.org/docs/latest/tutorial/tutorial-packaging)、[Electron 安全](https://www.electronjs.org/docs/latest/tutorial/security)和 [Tauri Windows 前置条件](https://tauri.app/start/prerequisites/)。
-- PostgreSQL 的全文检索、事务和行锁，以及 Redis/RQ 的任务执行、共享限速与恢复是现有业务的一部分。桌面化须解决这些依赖的分发和生命周期；不能只替换连接字符串为 SQLite 或启用 inline 任务，就宣称完整桌面功能已经保留。当前 Windows 的真实队列路径仍使用 WSL/Linux，需要单独验证最终桌面运行方案。
-- 正式发行的服务入口仅向本机开放，桌面宿主按最小权限限制导航、外链和原生调用；主密钥、API Key 与管理员凭据不得进入前端构建产物或公共安装资源。
-- 数据、配置和脱敏日志写入用户数据目录，与安装目录分离。需要验证更新、失败回滚与卸载后数据保留策略，迁移现有真实数据库前先备份并在隔离副本演练。
-
-桌面版的独立验收项：干净 Windows 环境安装、双击启动、无需开发服务器、真实财务与来源读取、实际异步同步、模型配置加密、重启后数据保留、重复启动与端口冲突、依赖故障/任务恢复、退出后进程清理、更新迁移及卸载。安装包签名与各系统验证按实际条件分别记录；既有 584 项后端、48 项前端与 14 项浏览器通过记录继续有效，但不能替代这些桌面验收。
+当前桌面版采用 WinForms/WebView2 宿主，复用现有前端构建，并在 WSL2 的专用用户和独立资料目录中运行 FastAPI、PostgreSQL、Redis 及 RQ。Windows 宿主通过标准流访问 WSL 服务，Linux 内部使用私有 Unix 套接字。首次依赖初始化、发布构建和数据目录说明见 [Windows 桌面版](WINDOWS_DESKTOP.md)。`start_local.ps1` 仍用于已有开发环境。
 
 ## 环境选择
 

@@ -3,6 +3,8 @@ export const designSettingsTranslations: Record<string, string> = {
   '设置分区': 'Settings sections',
   '偏好设置': 'Preferences',
   '会话权限': 'Session access',
+  '桌面应用已为本机工作区授权。': 'The desktop app manages access to this local workspace.',
+  '桌面会话已授权': 'Desktop session authorized',
   '模型连接': 'Model connections',
   '调整阅读体验，即时生效。': 'Personalize your reading experience. Changes apply immediately.',
   '外观主题': 'Appearance',
